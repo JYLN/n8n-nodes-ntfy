@@ -1,4 +1,4 @@
-import { IExecuteFunctions } from 'n8n-workflow';
+import { IExecuteFunctions, IHttpRequestOptions } from 'n8n-workflow';
 
 type NTFYBody = {
 	[key: string]: string | string[] | undefined;
@@ -60,4 +60,33 @@ export async function constructBody(
 	}
 
 	return body;
+}
+
+export async function ntfyApiRequest(this: IExecuteFunctions, index: number, body: NTFYBody) {
+	// Get if custom server is used
+	const useCustomServer = this.getNodeParameter('useCustomServer', index) as boolean;
+
+	// HTTP Request options
+	const options: IHttpRequestOptions = {
+		url: useCustomServer
+			? (this.getNodeParameter('serverUrl', index) as string)
+			: 'https://ntfy.sh',
+		method: 'POST',
+		json: true,
+		body: JSON.stringify(body),
+	};
+
+	let response;
+
+	try {
+		const credentials = await this.getCredentials('ntfyApi', index);
+
+		if (credentials) {
+			response = await this.helpers.requestWithAuthentication.call(this, 'ntfyApi', options);
+		}
+	} catch {
+		response = await this.helpers.request(options);
+	}
+
+	return response;
 }
