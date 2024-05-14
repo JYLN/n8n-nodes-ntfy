@@ -64,6 +64,7 @@ export class Ntfy implements INodeType {
 				'priority',
 				'tags',
 				'message',
+				'click',
 			]);
 
 			returnData.push(body);

@@ -15,6 +15,10 @@ type EmojisAndTags = {
 	}[];
 };
 
+type AdditionalOptions = {
+	[key: string]: any | undefined;
+};
+
 export async function constructBody(
 	this: IExecuteFunctions,
 	index: number,
@@ -25,20 +29,33 @@ export async function constructBody(
 	for (const field of fieldArray) {
 		try {
 			// Main Fields
-			switch (field) {
-				case 'tags':
-					const { emojisAndTags } = this.getNodeParameter(field, index) as EmojisAndTags;
+			const mainField = this.getNodeParameter(field, index);
 
-					if (emojisAndTags) {
-						body[field] = emojisAndTags.map((emoji) => emoji.tag.value);
-					}
-					break;
-				default:
-					body[field] = this.getNodeParameter(field, index) as string;
+			if (mainField) {
+				switch (field) {
+					case 'tags':
+						const { emojisAndTags } = mainField as EmojisAndTags;
+
+						if (emojisAndTags) {
+							body[field] = emojisAndTags.map((emoji) => emoji.tag.value);
+						}
+						break;
+					default:
+						body[field] = mainField as string;
+				}
 			}
-		} catch (err) {
+		} catch {
 			// Additional Fields
-			console.log(err);
+			const additionalOption = (
+				this.getNodeParameter('additionalOptions', index) as AdditionalOptions
+			)[field];
+
+			if (additionalOption) {
+				switch (field) {
+					default:
+						body[field] = additionalOption;
+				}
+			}
 		}
 	}
 
