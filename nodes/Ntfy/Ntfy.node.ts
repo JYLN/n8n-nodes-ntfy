@@ -1,4 +1,5 @@
 import { INodeType, INodeTypeDescription } from 'n8n-workflow';
+import { mainFields } from './mainFields';
 
 export class Ntfy implements INodeType {
 	description: INodeTypeDescription = {
@@ -13,6 +14,6 @@ export class Ntfy implements INodeType {
 		},
 		inputs: ['main'],
 		outputs: ['main'],
-		properties: [],
+		properties: [...mainFields],
 	};
 }
