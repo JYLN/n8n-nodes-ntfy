@@ -104,4 +104,13 @@ export const mainFields: INodeProperties[] = [
 			},
 		],
 	},
+	{
+		displayName: 'Message',
+		name: 'message',
+		type: 'string',
+		default: '',
+		typeOptions: {
+			rows: 7,
+		},
+	},
 ];
