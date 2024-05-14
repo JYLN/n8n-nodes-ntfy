@@ -58,16 +58,24 @@ export class Ntfy implements INodeType {
 		const returnData: IDataObject[] = [];
 
 		for (let i = 0; i < items.length; i++) {
-			const body = await constructBody.call(this, i, [
-				'topic',
-				'title',
-				'priority',
-				'tags',
-				'message',
-				'click',
-			]);
+			try {
+				const body = await constructBody.call(this, i, [
+					'topic',
+					'title',
+					'priority',
+					'tags',
+					'message',
+					'click',
+				]);
 
-			returnData.push(body);
+				returnData.push(body);
+			} catch (error) {
+				if (this.continueOnFail()) {
+					returnData.push({ error: error.message });
+					continue;
+				}
+				throw error;
+			}
 		}
 
 		return [this.helpers.returnJsonArray(returnData)];
