@@ -7,6 +7,16 @@ export const additionalFields: INodeProperties[] = [
 		type: 'collection',
 		default: {},
 		placeholder: 'Add Option',
-		options: [],
+		options: [
+			{
+				displayName: 'Click Action',
+				name: 'click',
+				type: 'string',
+				default: '',
+				placeholder: 'https://example.com',
+				description:
+					'URL to open when the notification is clicked. Refer to the <a href="https://docs.ntfy.sh/publish/#click-action">NTFY Docs</a> for valid URLs.',
+			},
+		],
 	},
 ];
