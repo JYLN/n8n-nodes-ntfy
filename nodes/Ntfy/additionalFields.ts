@@ -8,6 +8,8 @@ export const additionalFields: INodeProperties[] = [
 		default: {},
 		placeholder: 'Add Option',
 		options: [
+			// TODO: Action Buttons
+			// TODO: Attachments
 			{
 				displayName: 'Click Action',
 				name: 'click',
@@ -17,6 +19,7 @@ export const additionalFields: INodeProperties[] = [
 				description:
 					'URL to open when the notification is clicked. Refer to the <a href="https://docs.ntfy.sh/publish/#click-action">NTFY Docs</a> for valid URLs.',
 			},
+			// TODO: Schedule Delivery
 		],
 	},
 ];

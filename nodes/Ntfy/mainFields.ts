@@ -4,7 +4,8 @@ export const mainFields: INodeProperties[] = [
 	{
 		displayName: 'Use Custom Server',
 		name: 'useCustomServer',
-		description: 'Whether to use a custom server. If not, the default server will be used.',
+		description:
+			'Whether to use a custom server. If not, the default server (ntfy.sh) will be used.',
 		type: 'boolean',
 		default: false,
 	},
@@ -67,6 +68,7 @@ export const mainFields: INodeProperties[] = [
 	{
 		displayName: 'Emojis/Tags',
 		name: 'tags',
+		description: 'View the full list of emojis <a href="https://docs.ntfy.sh/emojis">here</a>',
 		type: 'fixedCollection',
 		default: {},
 		placeholder: 'Add Emoji/Tag',
@@ -99,6 +101,7 @@ export const mainFields: INodeProperties[] = [
 								},
 							},
 						],
+						noDataExpression: true,
 					},
 				],
 			},
