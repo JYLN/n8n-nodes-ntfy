@@ -1,4 +1,10 @@
-import { INodeType, INodeTypeDescription } from 'n8n-workflow';
+import {
+	ILoadOptionsFunctions,
+	INodeListSearchResult,
+	INodeType,
+	INodeTypeDescription,
+} from 'n8n-workflow';
+import emojis from './emojis.json';
 import { mainFields } from './mainFields';
 
 export class Ntfy implements INodeType {
@@ -15,5 +21,23 @@ export class Ntfy implements INodeType {
 		inputs: ['main'],
 		outputs: ['main'],
 		properties: [...mainFields],
+	};
+
+	methods = {
+		listSearch: {
+			async searchEmojis(
+				this: ILoadOptionsFunctions,
+				query?: string,
+			): Promise<INodeListSearchResult> {
+				return {
+					results: emojis
+						.filter((emoji) => emoji.text.toLowerCase().includes(query?.toLowerCase() || ''))
+						.map((emoji) => ({
+							name: `${emoji.emoji} - ${emoji.text}`,
+							value: emoji.text,
+						})),
+				};
+			},
+		},
 	};
 }
