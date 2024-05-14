@@ -8,6 +8,7 @@ import {
 	INodeTypeDescription,
 	NodeExecutionWithMetadata,
 } from 'n8n-workflow';
+import { additionalFields } from './additionalFields';
 import emojis from './emojis.json';
 import { constructBody } from './genericFunctions';
 import { mainFields } from './mainFields';
@@ -25,7 +26,7 @@ export class Ntfy implements INodeType {
 		},
 		inputs: ['main'],
 		outputs: ['main'],
-		properties: [...mainFields],
+		properties: [...mainFields, ...additionalFields],
 		credentials: [
 			{
 				name: 'ntfyApi',
