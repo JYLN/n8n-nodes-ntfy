@@ -21,6 +21,11 @@ export class Ntfy implements INodeType {
 		inputs: ['main'],
 		outputs: ['main'],
 		properties: [...mainFields],
+		credentials: [
+			{
+				name: 'ntfyApi',
+			},
+		],
 	};
 
 	methods = {
