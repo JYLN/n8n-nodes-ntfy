@@ -35,4 +35,33 @@ export const mainFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 	},
+	{
+		displayName: 'Priority',
+		name: 'priority',
+		type: 'options',
+		default: 3,
+		options: [
+			{
+				name: 'Max',
+				value: 5,
+			},
+			{
+				name: 'High',
+				value: 4,
+			},
+			{
+				name: 'Default',
+				value: 3,
+			},
+			{
+				name: 'Low',
+				value: 2,
+			},
+			{
+				name: 'Min',
+				value: 1,
+			},
+		],
+		noDataExpression: true,
+	},
 ];
