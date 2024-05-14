@@ -28,4 +28,10 @@ export const mainFields: INodeProperties[] = [
 		placeholder: 'mytopic',
 		required: true,
 	},
+	{
+		displayName: 'Title',
+		name: 'title',
+		type: 'string',
+		default: '',
+	},
 ];
