@@ -1,10 +1,15 @@
 import {
+	IDataObject,
+	IExecuteFunctions,
 	ILoadOptionsFunctions,
+	INodeExecutionData,
 	INodeListSearchResult,
 	INodeType,
 	INodeTypeDescription,
+	NodeExecutionWithMetadata,
 } from 'n8n-workflow';
 import emojis from './emojis.json';
+import { constructBody } from './genericFunctions';
 import { mainFields } from './mainFields';
 
 export class Ntfy implements INodeType {
@@ -45,4 +50,24 @@ export class Ntfy implements INodeType {
 			},
 		},
 	};
+	async execute(
+		this: IExecuteFunctions,
+	): Promise<INodeExecutionData[][] | NodeExecutionWithMetadata[][] | null> {
+		const items = this.getInputData();
+		const returnData: IDataObject[] = [];
+
+		for (let i = 0; i < items.length; i++) {
+			const body = await constructBody.call(this, i, [
+				'topic',
+				'title',
+				'priority',
+				'tags',
+				'message',
+			]);
+
+			returnData.push(body);
+		}
+
+		return [this.helpers.returnJsonArray(returnData)];
+	}
 }
