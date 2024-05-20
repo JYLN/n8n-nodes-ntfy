@@ -1,4 +1,8 @@
-import { IExecuteFunctions, IHttpRequestOptions } from 'n8n-workflow';
+import {
+	IExecuteFunctions,
+	IHttpRequestOptions,
+	INodeParameterResourceLocator,
+} from 'n8n-workflow';
 
 type NTFYBody = {
 	[key: string]: string | string[] | undefined;
@@ -6,12 +10,7 @@ type NTFYBody = {
 
 type EmojisAndTags = {
 	emojisAndTags: {
-		tag: {
-			__r1: boolean;
-			value: string;
-			mode: string;
-			cachedResultName: string;
-		};
+		tag: INodeParameterResourceLocator;
 	}[];
 };
 
@@ -37,7 +36,7 @@ export async function constructBody(
 						const { emojisAndTags } = mainField as EmojisAndTags;
 
 						if (emojisAndTags) {
-							body[field] = emojisAndTags.map((emoji) => emoji.tag.value);
+							body[field] = emojisAndTags.map((emoji) => emoji.tag.value) as string[];
 						}
 						break;
 					default:
