@@ -10,7 +10,7 @@ import {
 } from 'n8n-workflow';
 import { additionalFields } from './additionalFields';
 import emojis from './emojis.json';
-import { constructBody } from './genericFunctions';
+import { constructBody, requestNTFYApi } from './genericFunctions';
 import { mainFields } from './mainFields';
 
 export class Ntfy implements INodeType {
@@ -72,7 +72,8 @@ export class Ntfy implements INodeType {
 					'delay',
 				]);
 
-				returnData.push(body);
+				const response = await requestNTFYApi.call(this, i, body);
+				returnData.push(response);
 			} catch (error) {
 				if (this.continueOnFail()) {
 					returnData.push({ error: error.message });
