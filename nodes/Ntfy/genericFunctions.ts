@@ -51,8 +51,9 @@ export async function constructBody(
 		if (value) {
 			switch (field) {
 				case 'tags':
-					console.log(value);
-					body[field] = getTagsFromNodeParameter(value as EmojisAndTags);
+					if ((value as EmojisAndTags).emojisAndTags) {
+						body[field] = getTagsFromNodeParameter(value as EmojisAndTags);
+					}
 					break;
 				default:
 					body[field] = value as string;
