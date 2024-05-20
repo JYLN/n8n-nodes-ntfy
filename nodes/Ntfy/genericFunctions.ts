@@ -5,7 +5,7 @@ import {
 } from 'n8n-workflow';
 
 type NTFYBody = {
-	[key: string]: string | string[] | undefined;
+	[key: string]: string | string[] | NTFYActionButton[] | undefined;
 };
 
 type EmojisAndTags = {
@@ -18,11 +18,33 @@ type AdditionalOptions = {
 	[key: string]: any | undefined;
 };
 
+type N8NActionButtons = {
+	actionButtons: {
+		action: 'view' | 'http';
+		label: string;
+		url: string;
+		clear: boolean;
+		method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+		headersJson: string;
+		bodyJson: string;
+	}[];
+};
+
+type NTFYActionButton = {
+	action: 'view' | 'http';
+	label: string;
+	url: string;
+	clear: boolean;
+	method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+	headers?: { [key: string]: string };
+	body?: string;
+};
+
 function getValueFromNodeParameter(
 	this: IExecuteFunctions,
 	index: number,
 	fieldName: string,
-): string | string[] | EmojisAndTags | undefined {
+): string | string[] | EmojisAndTags | N8NActionButtons | undefined {
 	try {
 		return this.getNodeParameter(fieldName, index) as string;
 	} catch {
@@ -36,6 +58,22 @@ function getValueFromNodeParameter(
 
 function getTagsFromNodeParameter(emojisAndTags: EmojisAndTags): string[] {
 	return emojisAndTags.emojisAndTags.map(({ tag }) => tag.value) as string[];
+}
+
+function getActionButtonsFromNodeParameter(actionButtons: N8NActionButtons): NTFYActionButton[] {
+	return actionButtons.actionButtons.map(
+		({ action, label, url, clear, method, headersJson, bodyJson }) => {
+			const button: NTFYActionButton = { action, label, url, clear };
+
+			if (action === 'http') {
+				button.method = method;
+				button.headers = JSON.parse(headersJson);
+				button.body = bodyJson;
+			}
+
+			return button;
+		},
+	);
 }
 
 export async function constructBody(
@@ -53,6 +91,11 @@ export async function constructBody(
 				case 'tags':
 					if ((value as EmojisAndTags).emojisAndTags) {
 						body[field] = getTagsFromNodeParameter(value as EmojisAndTags);
+					}
+					break;
+				case 'actions':
+					if ((value as N8NActionButtons).actionButtons) {
+						body[field] = getActionButtonsFromNodeParameter(value as N8NActionButtons);
 					}
 					break;
 				default:
