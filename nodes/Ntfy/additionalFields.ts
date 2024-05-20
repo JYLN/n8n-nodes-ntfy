@@ -144,11 +144,33 @@ export const additionalFields: INodeProperties[] = [
 			{
 				displayName: 'Attachment',
 				name: 'attach',
-				type: 'string',
-				default: '',
-				placeholder: 'https://example.com/filename.jpg',
-				description:
-					'URL of an image/file to attach to the notification (binary data not supported yet)',
+				type: 'fixedCollection',
+				default: { attachment: [{ name: '', url: '' }] },
+				placeholder: 'Add Attachment',
+				options: [
+					{
+						displayName: 'Attachment',
+						name: 'attachment',
+						values: [
+							{
+								displayName: 'Filename',
+								name: 'filename',
+								type: 'string',
+								default: '',
+								description: 'Change the filename of the attachment in the notification',
+							},
+							{
+								displayName: 'URL',
+								name: 'url',
+								type: 'string',
+								default: '',
+								placeholder: 'https://example.com/filename.jpg',
+								description:
+									'URL of an image/file to attach to the notification (binary data not supported yet)',
+							},
+						],
+					},
+				],
 			},
 			{
 				displayName: 'Click Action',

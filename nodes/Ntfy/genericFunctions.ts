@@ -40,11 +40,18 @@ type NTFYActionButton = {
 	body?: string;
 };
 
+type N8NAttachment = {
+	attachment: {
+		filename?: string;
+		url: string;
+	};
+};
+
 function getValueFromNodeParameter(
 	this: IExecuteFunctions,
 	index: number,
 	fieldName: string,
-): string | string[] | EmojisAndTags | N8NActionButtons | undefined {
+): string | string[] | EmojisAndTags | N8NActionButtons | N8NAttachment | undefined {
 	try {
 		return this.getNodeParameter(fieldName, index) as string;
 	} catch {
@@ -96,6 +103,13 @@ export async function constructBody(
 				case 'actions':
 					if ((value as N8NActionButtons).actionButtons) {
 						body[field] = getActionButtonsFromNodeParameter(value as N8NActionButtons);
+					}
+					break;
+				case 'attach':
+					if ((value as N8NAttachment).attachment) {
+						const { filename, url } = (value as N8NAttachment).attachment;
+						body.attach = url;
+						if (filename) body.filename = filename;
 					}
 					break;
 				default:
