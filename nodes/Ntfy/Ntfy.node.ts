@@ -20,6 +20,7 @@ export class Ntfy implements INodeType {
 		icon: 'file:ntfy.svg',
 		version: 1,
 		description: 'Send notifications with ntfy.sh',
+		subtitle: `={{ "Send to topic: " + $parameter["topic"] }}`,
 		group: [],
 		defaults: {
 			name: 'NTFY',
