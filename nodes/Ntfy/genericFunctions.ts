@@ -18,42 +18,44 @@ type AdditionalOptions = {
 	[key: string]: any | undefined;
 };
 
+function getValueFromNodeParameter(
+	this: IExecuteFunctions,
+	index: number,
+	fieldName: string,
+): string | string[] | EmojisAndTags | undefined {
+	try {
+		return this.getNodeParameter(fieldName, index) as string;
+	} catch {
+		const additionalOptions = this.getNodeParameter(
+			'additionalOptions',
+			index,
+		) as AdditionalOptions;
+		return additionalOptions[fieldName] as string;
+	}
+}
+
+function getTagsFromNodeParameter(emojisAndTags: EmojisAndTags): string[] {
+	return emojisAndTags.emojisAndTags.map(({ tag }) => tag.value) as string[];
+}
+
 export async function constructBody(
 	this: IExecuteFunctions,
 	index: number,
-	fieldArray: string[],
+	fields: string[],
 ): Promise<NTFYBody> {
 	const body: NTFYBody = {};
 
-	for (const field of fieldArray) {
-		try {
-			// Main Fields
-			const mainField = this.getNodeParameter(field, index);
+	for (const field of fields) {
+		const value = getValueFromNodeParameter.call(this, index, field);
 
-			if (mainField) {
-				switch (field) {
-					case 'tags':
-						const { emojisAndTags } = mainField as EmojisAndTags;
-
-						if (emojisAndTags) {
-							body[field] = emojisAndTags.map((emoji) => emoji.tag.value) as string[];
-						}
-						break;
-					default:
-						body[field] = mainField as string;
-				}
-			}
-		} catch {
-			// Additional Fields
-			const additionalOption = (
-				this.getNodeParameter('additionalOptions', index) as AdditionalOptions
-			)[field];
-
-			if (additionalOption) {
-				switch (field) {
-					default:
-						body[field] = additionalOption;
-				}
+		if (value) {
+			switch (field) {
+				case 'tags':
+					console.log(value);
+					body[field] = getTagsFromNodeParameter(value as EmojisAndTags);
+					break;
+				default:
+					body[field] = value as string;
 			}
 		}
 	}
@@ -61,31 +63,23 @@ export async function constructBody(
 	return body;
 }
 
-export async function ntfyApiRequest(this: IExecuteFunctions, index: number, body: NTFYBody) {
-	// Get if custom server is used
-	const useCustomServer = this.getNodeParameter('useCustomServer', index) as boolean;
+export async function requestNTFYApi(this: IExecuteFunctions, index: number, body: NTFYBody) {
+	const useCustomServer = this.getNodeParameter('useCustomServer', index);
+	const serverUrl = useCustomServer
+		? (this.getNodeParameter('serverUrl', index) as string)
+		: 'https://ntfy.sh';
 
-	// HTTP Request options
 	const options: IHttpRequestOptions = {
-		url: useCustomServer
-			? (this.getNodeParameter('serverUrl', index) as string)
-			: 'https://ntfy.sh',
+		url: serverUrl,
 		method: 'POST',
 		json: true,
-		body: JSON.stringify(body),
+		body,
 	};
-
-	let response;
 
 	try {
 		const credentials = await this.getCredentials('ntfyApi', index);
-
-		if (credentials) {
-			response = await this.helpers.requestWithAuthentication.call(this, 'ntfyApi', options);
-		}
+		if (credentials) return this.helpers.requestWithAuthentication.call(this, 'ntfyApi', options);
 	} catch {
-		response = await this.helpers.request(options);
+		return this.helpers.request(options);
 	}
-
-	return response;
 }
