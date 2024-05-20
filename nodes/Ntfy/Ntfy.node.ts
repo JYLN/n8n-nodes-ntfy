@@ -67,6 +67,7 @@ export class Ntfy implements INodeType {
 					'message',
 					'attach',
 					'click',
+					'delay',
 				]);
 
 				returnData.push(body);
