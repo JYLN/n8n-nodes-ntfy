@@ -65,6 +65,7 @@ export class Ntfy implements INodeType {
 					'priority',
 					'tags',
 					'message',
+					'attach',
 					'click',
 				]);
 

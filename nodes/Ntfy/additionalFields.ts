@@ -9,7 +9,16 @@ export const additionalFields: INodeProperties[] = [
 		placeholder: 'Add Option',
 		options: [
 			// TODO: Action Buttons
-			// TODO: Attachments
+			// TODO: Attachments via binary (not sure how to do this yet, and will likely require all other input data to be headers instead of body)
+			{
+				displayName: 'Attachment',
+				name: 'attach',
+				type: 'string',
+				default: '',
+				placeholder: 'https://example.com/filename.jpg',
+				description:
+					'URL of an image/file to attach to the notification (binary data not supported yet)',
+			},
 			{
 				displayName: 'Click Action',
 				name: 'click',
