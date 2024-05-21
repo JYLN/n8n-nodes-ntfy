@@ -48,18 +48,18 @@ export const additionalFields: INodeProperties[] = [
 							{
 								displayName: 'URL',
 								name: 'url',
+								description:
+									'URL to open when the action button is clicked. Refer to the <a href="https://docs.ntfy.sh/publish/#click-action">NTFY Docs</a> for valid URLs.',
 								type: 'string',
 								default: '',
 								placeholder: 'https://example.com',
-								description:
-									'URL to open when the action button is clicked. Refer to the <a href="https://docs.ntfy.sh/publish/#click-action">NTFY Docs</a> for valid URLs.',
 							},
 							{
 								displayName: 'Clear',
 								name: 'clear',
+								description: 'Whether to clear the notfication after action button is pressed',
 								type: 'boolean',
 								default: false,
-								description: 'Whether to clear the notfication after action button is pressed',
 							},
 							{
 								displayName: 'Method',
@@ -104,6 +104,7 @@ export const additionalFields: INodeProperties[] = [
 							{
 								displayName: 'Headers',
 								name: 'headersJson',
+								description: 'JSON object of headers to send',
 								type: 'json',
 								default: '',
 								displayOptions: {
@@ -111,7 +112,6 @@ export const additionalFields: INodeProperties[] = [
 										sendHeaders: [true],
 									},
 								},
-								description: 'JSON object of headers to send',
 							},
 							{
 								displayName: 'Send Body',
@@ -127,6 +127,7 @@ export const additionalFields: INodeProperties[] = [
 							{
 								displayName: 'Body',
 								name: 'bodyJson',
+								description: 'JSON object to send as body',
 								type: 'json',
 								default: '',
 								displayOptions: {
@@ -134,7 +135,6 @@ export const additionalFields: INodeProperties[] = [
 										sendBody: [true],
 									},
 								},
-								description: 'JSON object to send as body',
 							},
 						],
 					},
@@ -155,18 +155,18 @@ export const additionalFields: INodeProperties[] = [
 							{
 								displayName: 'Filename',
 								name: 'filename',
+								description: 'Change the filename of the attachment in the notification',
 								type: 'string',
 								default: '',
-								description: 'Change the filename of the attachment in the notification',
 							},
 							{
 								displayName: 'URL',
 								name: 'url',
+								description:
+									'URL of an image/file to attach to the notification (binary data not supported yet)',
 								type: 'string',
 								default: '',
 								placeholder: 'https://example.com/filename.jpg',
-								description:
-									'URL of an image/file to attach to the notification (binary data not supported yet)',
 							},
 						],
 					},
@@ -175,19 +175,20 @@ export const additionalFields: INodeProperties[] = [
 			{
 				displayName: 'Click Action',
 				name: 'click',
+				description:
+					'URL to open when the notification is clicked. Refer to the <a href="https://docs.ntfy.sh/publish/#click-action">NTFY Docs</a> for valid URLs.',
 				type: 'string',
 				default: '',
 				placeholder: 'https://example.com',
-				description:
-					'URL to open when the notification is clicked. Refer to the <a href="https://docs.ntfy.sh/publish/#click-action">NTFY Docs</a> for valid URLs.',
 			},
 			{
 				displayName: 'Scheduled Delivery',
 				name: 'delay',
-				type: 'string',
-				default: '',
 				description:
 					'Time to wait before sending the notification. Refer to the <a href="https://docs.ntfy.sh/publish/#scheduled-delivery">NTFY Docs</a> for valid time strings.',
+				type: 'string',
+				default: '',
+				placeholder: '30m OR 2 hours OR 1 day OR etc...',
 			},
 		],
 	},
