@@ -8,10 +8,12 @@ This is an n8n community node. It lets you use [ntfy.sh](https://ntfy.sh) in you
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
+## Table of Contents
+
 [Installation](#installation)  
 [Operations](#operations)  
 [Compatibility](#compatibility)  
-[Usage & Credentials](#usage) <!-- delete if not using this section -->  
+[Usage & Credentials](#usage--credentials) <!-- delete if not using this section -->  
 [Resources](#resources)
 
 ## Installation
