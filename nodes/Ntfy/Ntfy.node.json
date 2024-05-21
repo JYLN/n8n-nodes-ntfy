@@ -6,12 +6,12 @@
 	"resources": {
 		"credentialDocumentation": [
 			{
-				"url": ""
+				"url": "https://github.com/JYLN/n8n-nodes-ntfy/wiki/Credentials"
 			}
 		],
 		"primaryDocumentation": [
 			{
-				"url": ""
+				"url": "https://github.com/JYLN/n8n-nodes-ntfy/wiki/Usage"
 			}
 		]
 	}
