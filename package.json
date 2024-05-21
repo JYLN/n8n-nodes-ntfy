@@ -1,6 +1,6 @@
 {
 	"name": "@jyln/n8n-nodes-ntfy",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A community n8n node for ntfy.sh",
 	"keywords": [
 		"n8n-community-node-package",
