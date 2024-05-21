@@ -22,7 +22,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ## Operations
 
-Currently, only one operation is supported to send a notification using the ntfy API.
+Currently, only one operation is supported to send a notification using the ntfy API. Visit the [Usage](https://github.com/JYLN/n8n-nodes-ntfy/wiki/usage) page of this repo's wiki for more information.
 
 ## Compatibility
 
