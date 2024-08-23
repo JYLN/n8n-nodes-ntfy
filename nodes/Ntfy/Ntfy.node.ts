@@ -11,6 +11,7 @@ import {
 import emojis from './data/emojis.json';
 import { additionalFields } from './fields/additionalFields';
 import { generalFields } from './fields/generalFields';
+import { jsonFields } from './fields/jsonFields';
 import { mainFields } from './fields/mainFields';
 import { constructBody, requestNTFYApi } from './genericFunctions';
 
@@ -28,7 +29,7 @@ export class Ntfy implements INodeType {
 		},
 		inputs: ['main'],
 		outputs: ['main'],
-		properties: [...mainFields, ...generalFields, ...additionalFields],
+		properties: [...mainFields, ...generalFields, ...additionalFields, ...jsonFields],
 		credentials: [
 			{
 				name: 'ntfyApi',
