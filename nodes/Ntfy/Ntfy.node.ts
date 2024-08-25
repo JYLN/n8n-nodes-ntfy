@@ -8,10 +8,12 @@ import {
 	INodeTypeDescription,
 	NodeExecutionWithMetadata,
 } from 'n8n-workflow';
-import { additionalFields } from './additionalFields';
-import emojis from './emojis.json';
-import { constructBody, requestNTFYApi } from './genericFunctions';
-import { mainFields } from './mainFields';
+import emojis from './data/emojis.json';
+import { additionalFields } from './fields/additionalFields';
+import { generalFields } from './fields/generalFields';
+import { jsonFields } from './fields/jsonFields';
+import { mainFields } from './fields/mainFields';
+import { constructRequestData, requestNTFYApi } from './genericFunctions';
 
 export class Ntfy implements INodeType {
 	description: INodeTypeDescription = {
@@ -27,7 +29,7 @@ export class Ntfy implements INodeType {
 		},
 		inputs: ['main'],
 		outputs: ['main'],
-		properties: [...mainFields, ...additionalFields],
+		properties: [...mainFields, ...generalFields, ...additionalFields, ...jsonFields],
 		credentials: [
 			{
 				name: 'ntfyApi',
@@ -60,7 +62,7 @@ export class Ntfy implements INodeType {
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				const body = await constructBody.call(this, i, [
+				const requestData = await constructRequestData.call(this, i, [
 					'topic',
 					'title',
 					'priority',
@@ -70,9 +72,11 @@ export class Ntfy implements INodeType {
 					'actions',
 					'click',
 					'delay',
+					'manualJson',
+					'fileAttachment',
 				]);
 
-				const response = await requestNTFYApi.call(this, i, body);
+				const response = await requestNTFYApi.call(this, i, requestData);
 				returnData.push(response);
 			} catch (error) {
 				if (this.continueOnFail()) {

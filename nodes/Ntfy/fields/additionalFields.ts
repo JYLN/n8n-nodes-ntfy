@@ -7,6 +7,11 @@ export const additionalFields: INodeProperties[] = [
 		type: 'collection',
 		default: {},
 		placeholder: 'Add Option',
+		displayOptions: {
+			show: {
+				constructNotification: ['generalFields'],
+			},
+		},
 		options: [
 			// TODO: Header and body parameters by name/value fixedCollection
 			{
