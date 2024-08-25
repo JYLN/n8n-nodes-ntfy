@@ -13,7 +13,7 @@ import { additionalFields } from './fields/additionalFields';
 import { generalFields } from './fields/generalFields';
 import { jsonFields } from './fields/jsonFields';
 import { mainFields } from './fields/mainFields';
-import { constructBody, requestNTFYApi } from './genericFunctions';
+import { constructRequestData, requestNTFYApi } from './genericFunctions';
 
 export class Ntfy implements INodeType {
 	description: INodeTypeDescription = {
@@ -62,7 +62,7 @@ export class Ntfy implements INodeType {
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				const body = await constructBody.call(this, i, [
+				const requestData = await constructRequestData.call(this, i, [
 					'topic',
 					'title',
 					'priority',
@@ -72,9 +72,11 @@ export class Ntfy implements INodeType {
 					'actions',
 					'click',
 					'delay',
+					'manualJson',
+					'fileAttachment',
 				]);
 
-				const response = await requestNTFYApi.call(this, i, body);
+				const response = await requestNTFYApi.call(this, i, requestData);
 				returnData.push(response);
 			} catch (error) {
 				if (this.continueOnFail()) {

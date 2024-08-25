@@ -2,10 +2,12 @@ import {
 	IExecuteFunctions,
 	IHttpRequestOptions,
 	INodeParameterResourceLocator,
+	NodeParameterValueType,
 } from 'n8n-workflow';
 
-type NTFYBody = {
-	[key: string]: string | string[] | NTFYActionButton[] | undefined;
+type NTFYRequestData = {
+	headers?: { [key: string]: string };
+	body?: { [key: string]: string | string[] | NTFYActionButton[] | Buffer | undefined };
 };
 
 type EmojisAndTags = {
@@ -51,15 +53,19 @@ function getValueFromNodeParameter(
 	this: IExecuteFunctions,
 	index: number,
 	fieldName: string,
-): string | string[] | EmojisAndTags | N8NActionButtons | N8NAttachment | undefined {
+): NodeParameterValueType | object {
 	try {
-		return this.getNodeParameter(fieldName, index) as string;
+		try {
+			return this.getNodeParameter(fieldName, index);
+		} catch {
+			const additionalOptions = this.getNodeParameter(
+				'additionalOptions',
+				index,
+			) as AdditionalOptions;
+			return additionalOptions[fieldName];
+		}
 	} catch {
-		const additionalOptions = this.getNodeParameter(
-			'additionalOptions',
-			index,
-		) as AdditionalOptions;
-		return additionalOptions[fieldName] as string;
+		return null;
 	}
 }
 
@@ -83,12 +89,15 @@ function getActionButtonsFromNodeParameter(actionButtons: N8NActionButtons): NTF
 	);
 }
 
-export async function constructBody(
+export async function constructRequestData(
 	this: IExecuteFunctions,
 	index: number,
 	fields: string[],
-): Promise<NTFYBody> {
-	const body: NTFYBody = {};
+): Promise<NTFYRequestData> {
+	const requestData: NTFYRequestData = {
+		headers: {},
+		body: {},
+	};
 
 	for (const field of fields) {
 		const value = getValueFromNodeParameter.call(this, index, field);
@@ -97,47 +106,64 @@ export async function constructBody(
 			switch (field) {
 				case 'tags':
 					if ((value as EmojisAndTags).emojisAndTags) {
-						body[field] = getTagsFromNodeParameter(value as EmojisAndTags);
+						requestData.body![field] = getTagsFromNodeParameter(value as EmojisAndTags);
 					}
 					break;
 				case 'actions':
 					if ((value as N8NActionButtons).actionButtons) {
-						body[field] = getActionButtonsFromNodeParameter(value as N8NActionButtons);
+						requestData.body![field] = getActionButtonsFromNodeParameter(value as N8NActionButtons);
 					}
 					break;
 				case 'attach':
 					if ((value as N8NAttachment).attachment) {
 						const { filename, url } = (value as N8NAttachment).attachment;
-						body.attach = url;
-						if (filename) body.filename = filename;
+						requestData.body!.attach = url;
+						if (filename) requestData.body!.filename = filename;
 					}
 					break;
+				case 'manualJson':
+					requestData.headers = JSON.parse(value as string);
+					break;
+				case 'fileAttachment':
+					requestData.body = {
+						buffer: await this.helpers.getBinaryDataBuffer(index, value as string),
+					};
+					break;
 				default:
-					body[field] = value as string;
+					requestData.body![field] = value as string;
 			}
 		}
 	}
 
-	return body;
+	return requestData;
 }
 
-export async function requestNTFYApi(this: IExecuteFunctions, index: number, body: NTFYBody) {
+export async function requestNTFYApi(
+	this: IExecuteFunctions,
+	index: number,
+	requestData: NTFYRequestData,
+) {
+	const constructNotification = this.getNodeParameter('constructNotification', index) as string;
 	const useCustomServer = this.getNodeParameter('useCustomServer', index);
+	const topic = this.getNodeParameter('topic', index) as string;
 	const serverUrl = useCustomServer
-		? (this.getNodeParameter('serverUrl', index) as string)
-		: 'https://ntfy.sh';
+		? `${this.getNodeParameter('serverUrl', index) as string}`
+		: `https://ntfy.sh`;
 
 	const options: IHttpRequestOptions = {
-		url: serverUrl,
 		method: 'POST',
-		json: true,
-		body,
+		url: constructNotification === 'jsonAndBinaryFields' ? serverUrl + '/' + topic : serverUrl,
+		json: constructNotification === 'jsonAndBinaryFields' ? true : undefined,
+		headers: constructNotification === 'jsonAndBinaryFields' ? requestData.headers : {},
+		body:
+			constructNotification === 'jsonAndBinaryFields' ? requestData.body?.buffer : requestData.body,
 	};
 
 	try {
 		const credentials = await this.getCredentials('ntfyApi', index);
-		if (credentials) return this.helpers.requestWithAuthentication.call(this, 'ntfyApi', options);
+		if (credentials)
+			return this.helpers.httpRequestWithAuthentication.call(this, 'ntfyApi', options);
 	} catch {
-		return this.helpers.request(options);
+		return this.helpers.httpRequest(options);
 	}
 }

@@ -3,7 +3,7 @@ import { INodeProperties } from 'n8n-workflow';
 export const jsonFields: INodeProperties[] = [
 	{
 		displayName: 'JSON',
-		name: 'json',
+		name: 'manualJson',
 		type: 'json',
 		default: '{}',
 		displayOptions: {
@@ -19,7 +19,8 @@ export const jsonFields: INodeProperties[] = [
 		name: 'fileAttachment',
 		type: 'string',
 		default: '',
-		description: 'File to use as attachment on notification. Data must be a n8n binary item.',
+		description:
+			'File to use as attachment on notification. Data must be a n8n binary item. For more information regarding file attachments, check ntfy <a href="https://docs.ntfy.sh/publish/#attach-local-file" target="_blank">docs</a>.',
 		displayOptions: {
 			show: {
 				constructNotification: ['jsonAndBinaryFields'],
