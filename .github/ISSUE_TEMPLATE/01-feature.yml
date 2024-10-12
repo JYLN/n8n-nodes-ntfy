@@ -1,5 +1,5 @@
 name: 🛠️ Request New Feature
-description: Let us know what you owuld like to see added.
+description: Let us know what you would like to see added.
 labels: ['enhancement']
 body:
   - type: textarea
