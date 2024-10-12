@@ -13,7 +13,6 @@ export const additionalFields: INodeProperties[] = [
 			},
 		},
 		options: [
-			// TODO: Header and body parameters by name/value fixedCollection
 			{
 				displayName: 'Action Buttons',
 				name: 'actions',
@@ -95,6 +94,7 @@ export const additionalFields: INodeProperties[] = [
 									},
 								],
 							},
+							// TODO: Header and body parameters by name/value fixedCollection
 							{
 								displayName: 'Send Headers',
 								name: 'sendHeaders',
@@ -145,10 +145,12 @@ export const additionalFields: INodeProperties[] = [
 					},
 				],
 			},
-			// TODO: Attachments via binary (not sure how to do this yet, and will likely require all other input data to be headers instead of body)
 			{
 				displayName: 'Attachment',
 				name: 'attach',
+				// eslint-disable-next-line n8n-nodes-base/node-param-description-miscased-json
+				description:
+					'Add an attachment to the notification. <strong>NOTE</strong>: This is only for live URLs to attachments. To use n8n binary data for attachments, change the "Construct Notification" field to "JSON and Binary Fields". For more information, check out the <a href="https://github.com/JYLN/n8n-nodes-ntfy/wiki/Usage#json-and-binary-fields">docs</a>.',
 				type: 'fixedCollection',
 				default: { attachment: [{ name: '', url: '' }] },
 				placeholder: 'Add Attachment',
@@ -167,8 +169,7 @@ export const additionalFields: INodeProperties[] = [
 							{
 								displayName: 'URL',
 								name: 'url',
-								description:
-									'URL of an image/file to attach to the notification (binary data not supported yet)',
+								description: 'URL of an image/file to attach to the notification',
 								type: 'string',
 								default: '',
 								placeholder: 'https://example.com/filename.jpg',
