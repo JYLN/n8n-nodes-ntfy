@@ -20,6 +20,11 @@
 		"type": "git",
 		"url": "git+https://github.com/JYLN/n8n-nodes-ntfy.git"
 	},
+	"engines": {
+		"node": ">=18.10",
+		"pnpm": ">=9.1"
+	},
+	"packageManager": "pnpm@9.12.1",
 	"main": "index.js",
 	"scripts": {
 		"build": "tsc && gulp build:icons",
