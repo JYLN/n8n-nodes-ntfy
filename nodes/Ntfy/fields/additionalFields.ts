@@ -188,6 +188,15 @@ export const additionalFields: INodeProperties[] = [
 				placeholder: 'https://example.com',
 			},
 			{
+				displayName: 'Icon',
+				name: 'icon',
+				description:
+					'URL of a JPEG/PNG image to use as the notification icon. Refer to the <a href="https://docs.ntfy.sh/publish/#icon">NTFY Docs</a> for valid icons.',
+				type: 'string',
+				default: '',
+				placeholder: 'https://example.com/icon.png',
+			},
+			{
 				displayName: 'Scheduled Delivery',
 				name: 'delay',
 				description:
