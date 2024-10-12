@@ -1,8 +1,9 @@
-import { IAuthenticateGeneric, ICredentialType, INodeProperties } from 'n8n-workflow';
+import { IAuthenticateGeneric, Icon, ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class NtfyApi implements ICredentialType {
 	name = 'ntfyApi';
 	displayName: string = 'NTFY API';
+	icon?: Icon | undefined = 'file:../nodes/Ntfy/ntfy.svg';
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Bearer Token',
