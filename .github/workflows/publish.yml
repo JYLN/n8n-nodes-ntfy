@@ -15,14 +15,20 @@ jobs:
       - name: ✅ Checkout code
         uses: actions/checkout@v4
 
+      - name: 🛠️ Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
       - name: 🛠️ Setup node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: 📥️ Install Dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: 🚀 Run prepublish
         run: npm run prepublishOnly --if-present
@@ -35,17 +41,23 @@ jobs:
       - name: ✅ Checkout code
         uses: actions/checkout@v4
 
+      - name: 🛠️ Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
       - name: 🛠️ Setup node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
       - name: 📥️ Install Dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: 🚀 Publish Package to NPM
-        run: npm publish --access public
+        run: pnpm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
