@@ -1,22 +1,21 @@
 import {
+	BINARY_ENCODING,
 	IExecuteFunctions,
 	IHttpRequestOptions,
 	NodeOperationError,
 	NodeParameterValueType,
 } from 'n8n-workflow';
+// eslint-disable-next-line
+import type { Readable } from 'stream';
 
 type NTFYRequestData = {
-	headers?: { [key: string]: string };
-	body: { [key: string]: string | string[] | NTFYActionButton[] | Buffer | undefined };
+	headers: { [key: string]: string };
+	body?: Buffer<ArrayBufferLike> | Readable;
 };
 
 type EmojisAndTags = {
 	emojis: string[];
 	customTags: string;
-};
-
-type AdditionalOptions = {
-	[key: string]: any | undefined;
 };
 
 type N8NActionButtons = {
@@ -33,16 +32,6 @@ type N8NActionButtons = {
 	}[];
 };
 
-type NTFYActionButton = {
-	action: 'view' | 'http';
-	label: string;
-	url: string;
-	clear: boolean;
-	method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-	headers?: { [key: string]: string };
-	body?: string;
-};
-
 type N8NAttachment = {
 	attachment: {
 		filename?: string;
@@ -50,27 +39,24 @@ type N8NAttachment = {
 	};
 };
 
+function getFieldsFromNode(this: IExecuteFunctions) {
+	const nodeParameters = this.getNode().parameters;
+	return Object.keys(nodeParameters);
+}
+
 function getValueFromNodeParameter(
 	this: IExecuteFunctions,
 	index: number,
 	fieldName: string,
 ): NodeParameterValueType | object {
 	try {
-		try {
-			return this.getNodeParameter(fieldName, index);
-		} catch {
-			const additionalOptions = this.getNodeParameter(
-				'additionalOptions',
-				index,
-			) as AdditionalOptions;
-			return additionalOptions[fieldName];
-		}
+		return this.getNodeParameter(fieldName, index);
 	} catch {
 		return null;
 	}
 }
 
-function getTagsFromNodeParameter(this: IExecuteFunctions, emojisAndTags: EmojisAndTags): string[] {
+function getTagsFromNodeParameter(this: IExecuteFunctions, emojisAndTags: EmojisAndTags): string {
 	const { emojis, customTags: customTagsInput } = emojisAndTags;
 	let customTags: string[] = [];
 
@@ -86,73 +72,109 @@ function getTagsFromNodeParameter(this: IExecuteFunctions, emojisAndTags: Emojis
 		if (invalidTags.length > 0) {
 			throw new NodeOperationError(
 				this.getNode(),
-				`Invalid tag format: "${invalidTags.join(', ')}". Use only letters, numbers, hyphens, and underscores.`,
+				`Invalid tag format: "${invalidTags.join(', ')}". Use only letters, numbers, hyphens, and underscores. Spaces are not allowed within tags.`,
 			);
 		}
 	}
 
-	return [...emojis, ...customTags];
+	return [...emojis, ...customTags].join(',');
 }
 
-function getActionButtonsFromNodeParameter(actionButtons: N8NActionButtons): NTFYActionButton[] {
-	return actionButtons.actionButtons.map(
-		({ action, label, url, clear, method, sendBody, sendHeaders, headersJson, bodyJson }) => {
-			const button: NTFYActionButton = { action, label, url, clear };
+function getActionButtonsFromNodeParameter(actionButtons: N8NActionButtons): string {
+	const formattedActions = actionButtons.actionButtons.map(
+		({ action, label, url, clear, method, sendHeaders, headersJson, sendBody, bodyJson }) => {
+			const buttonParts = [action, label, url];
+
+			if (clear === true) buttonParts.push(`clear=true`);
 
 			if (action === 'http') {
-				button.method = method;
-				if (sendHeaders) button.headers = JSON.parse(headersJson);
-				if (sendBody) button.body = bodyJson;
+				buttonParts.push(`method=${method}`);
+				if (sendHeaders) {
+					for (const [key, val] of Object.entries(JSON.parse(headersJson))) {
+						buttonParts.push(`headers.${key}=${val}`);
+					}
+				}
+				if (sendBody) {
+					buttonParts.push(`body=${bodyJson}`);
+				}
 			}
 
-			return button;
+			return buttonParts.join(', ');
 		},
+	);
+
+	return formattedActions.join('; ');
+}
+
+function setHeaderName(field: string) {
+	return field.replace(
+		/\w\S*/g,
+		(text) => 'X-' + text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
 	);
 }
 
 export async function constructRequestData(
 	this: IExecuteFunctions,
 	index: number,
-	fields: string[],
 ): Promise<NTFYRequestData> {
+	const fields = getFieldsFromNode.call(this);
 	const requestData: NTFYRequestData = {
 		headers: {},
-		body: {},
 	};
 
 	for (const field of fields) {
+		const fieldHeaderName = setHeaderName(field);
 		const value = getValueFromNodeParameter.call(this, index, field);
 
-		if (value) {
-			switch (field) {
-				case 'tags':
-					if ((value as EmojisAndTags).emojis || (value as EmojisAndTags).customTags) {
-						requestData.body[field] = getTagsFromNodeParameter.call(this, value as EmojisAndTags);
+		if (!value) continue;
+
+		switch (field) {
+			case 'tags':
+				if ((value as EmojisAndTags).emojis || (value as EmojisAndTags).customTags) {
+					requestData.headers[fieldHeaderName] = getTagsFromNodeParameter.call(
+						this,
+						value as EmojisAndTags,
+					);
+				}
+				break;
+			case 'additionalOptions': {
+				const additionalFields = value;
+				const returnHeaders = {} as NTFYRequestData['headers'];
+				for (const [additionalField, additionalValue] of Object.entries(additionalFields)) {
+					if (additionalField === 'actions') {
+						returnHeaders['X-Actions'] = getActionButtonsFromNodeParameter(
+							additionalValue as N8NActionButtons,
+						);
+						continue;
 					}
-					break;
-				case 'actions':
-					if ((value as N8NActionButtons).actionButtons) {
-						requestData.body[field] = getActionButtonsFromNodeParameter(value as N8NActionButtons);
+					if (additionalField === 'fileAttach') {
+						let uploadData: Buffer | Readable;
+						const n8nBinaryData = this.helpers.assertBinaryData(index, additionalValue);
+						if (n8nBinaryData.id) {
+							uploadData = await this.helpers.getBinaryStream(n8nBinaryData.id);
+						} else {
+							uploadData = Buffer.from(n8nBinaryData.data, BINARY_ENCODING);
+						}
+						requestData.body = uploadData;
+						continue;
 					}
-					break;
-				case 'attach':
-					if ((value as N8NAttachment).attachment) {
-						const { filename, url } = (value as N8NAttachment).attachment;
-						requestData.body.attach = url;
-						if (filename) requestData.body.filename = filename;
+					if (additionalField === 'urlAttach') {
+						const urlAttachment = additionalValue as N8NAttachment;
+						if (urlAttachment.attachment) {
+							const { filename, url } = urlAttachment.attachment;
+							returnHeaders['X-Attach'] = url;
+							if (filename) returnHeaders['X-Filename'] = filename;
+						}
+						continue;
 					}
-					break;
-				case 'manualJson':
-					requestData.headers = JSON.parse(value as string);
-					break;
-				case 'fileAttachment':
-					requestData.body = {
-						buffer: await this.helpers.getBinaryDataBuffer(index, value as string),
-					};
-					break;
-				default:
-					requestData.body[field] = value as string;
+					returnHeaders[setHeaderName(additionalField)] = additionalValue;
+				}
+
+				Object.assign(requestData.headers, returnHeaders);
+				break;
 			}
+			default:
+				requestData.headers[fieldHeaderName] = value as string;
 		}
 	}
 
@@ -164,27 +186,20 @@ export async function requestNTFYApi(
 	index: number,
 	requestData: NTFYRequestData,
 ) {
-	const constructNotification = this.getNodeParameter('constructNotification', index) as string;
-	const useCustomServer = this.getNodeParameter('useCustomServer', index);
-	const topic = this.getNodeParameter('topic', index) as string;
-	const serverUrl = useCustomServer
-		? `${this.getNodeParameter('serverUrl', index) as string}`
-		: `https://ntfy.sh`;
-
-	const options: IHttpRequestOptions = {
-		method: 'POST',
-		url: constructNotification === 'jsonAndBinaryFields' ? serverUrl + '/' + topic : serverUrl,
-		json: constructNotification === 'jsonAndBinaryFields' ? true : undefined,
-		headers: constructNotification === 'jsonAndBinaryFields' ? requestData.headers : {},
-		body:
-			constructNotification === 'jsonAndBinaryFields' ? requestData.body.buffer : requestData.body,
-	};
-
 	try {
 		const credentials = await this.getCredentials('ntfyApi', index);
-		if (credentials)
-			return this.helpers.httpRequestWithAuthentication.call(this, 'ntfyApi', options);
-	} catch {
-		return this.helpers.httpRequest(options);
+		const serverUrl = credentials.serverUrl as string;
+		const { 'X-Topic': topic, ...restHeaders } = requestData.headers;
+
+		const options: IHttpRequestOptions = {
+			method: 'POST',
+			url: serverUrl + '/' + topic,
+			headers: restHeaders,
+			body: requestData.body || undefined,
+		};
+
+		return this.helpers.httpRequestWithAuthentication.call(this, 'ntfyApi', options);
+	} catch (err) {
+		throw new NodeOperationError(this.getNode(), err as Error);
 	}
 }
