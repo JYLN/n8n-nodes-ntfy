@@ -1,11 +1,26 @@
-import { IAuthenticateGeneric, Icon, ICredentialType, INodeProperties } from 'n8n-workflow';
+import {
+	IAuthenticateGeneric,
+	Icon,
+	ICredentialTestRequest,
+	ICredentialType,
+	INodeProperties,
+} from 'n8n-workflow';
 
 export class NtfyApi implements ICredentialType {
 	name = 'ntfyApi';
-	displayName: string = 'NTFY API';
-	documentationUrl?: string  = 'https://github.com/JYLN/n8n-nodes-ntfy/wiki/Credentials';
-	icon?: Icon | undefined = 'file:../nodes/Ntfy/ntfy.svg';
+	displayName = 'NTFY API';
+	documentationUrl = 'https://github.com/JYLN/n8n-nodes-ntfy/wiki/Credentials';
+	icon: Icon = 'file:../nodes/Ntfy/ntfy.svg';
 	properties: INodeProperties[] = [
+		{
+			name: 'serverUrl',
+			displayName: 'Server URL',
+			type: 'string',
+			default: 'https://ntfy.sh',
+			required: true,
+			description:
+				'The URL of the ntfy server you intend to publish to. Only change this if using a custom ntfy server.',
+		},
 		{
 			displayName: 'Bearer Token',
 			name: 'bearerToken',
@@ -22,6 +37,14 @@ export class NtfyApi implements ICredentialType {
 			headers: {
 				Authorization: '=Bearer {{$credentials.bearerToken}}',
 			},
+		},
+	};
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '={{$credentials.serverUrl}}',
+			url: '/v1/account',
+			method: 'GET',
 		},
 	};
 }

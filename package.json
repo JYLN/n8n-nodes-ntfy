@@ -1,7 +1,9 @@
 {
 	"name": "@jyln/n8n-nodes-ntfy",
-	"version": "1.2.0",
+	"version": "2.0.0",
 	"description": "A community n8n node for ntfy.sh",
+	"license": "MIT",
+	"homepage": "https://github.com/JYLN/n8n-nodes-ntfy.git",
 	"keywords": [
 		"n8n-community-node-package",
 		"ntfy",
@@ -10,8 +12,6 @@
 		"communication",
 		"n8n"
 	],
-	"license": "MIT",
-	"homepage": "https://github.com/JYLN/n8n-nodes-ntfy.git",
 	"author": {
 		"name": "JYLN",
 		"email": "contact@jyln.dev"
@@ -20,23 +20,21 @@
 		"type": "git",
 		"url": "git+https://github.com/JYLN/n8n-nodes-ntfy.git"
 	},
-	"engines": {
-		"node": ">=20.15"
-	},
-	"main": "index.js",
 	"scripts": {
-		"build": "npx rimraf dist && tsc && gulp build:icons",
-		"dev": "tsc --watch",
-		"format": "prettier nodes credentials --write",
-		"lint": "eslint nodes credentials package.json",
-		"lintfix": "eslint nodes credentials package.json --fix",
-		"prepublishOnly": "npm run build && npm run lint -c .eslintrc.prepublish.js nodes credentials package.json"
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
 	},
 	"files": [
 		"dist"
 	],
 	"n8n": {
 		"n8nNodesApiVersion": 1,
+		"strict": true,
 		"credentials": [
 			"dist/credentials/NtfyApi.credentials.js"
 		],
@@ -45,13 +43,12 @@
 		]
 	},
 	"devDependencies": {
-		"@types/node": "^22.15.29",
-		"@typescript-eslint/parser": "~8.32.0",
-		"eslint": "^8.57.0",
-		"eslint-plugin-n8n-nodes-base": "^1.16.3",
-		"gulp": "^5.0.0",
-		"prettier": "^3.5.3",
-		"typescript": "^5.8.2"
+		"@n8n/node-cli": "*",
+		"@types/node": "^25.0.10",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2"
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"

@@ -1,3 +1,4 @@
+# DEPRECATED: Updating project to use n8n-node cli tool. Use "npm run release" instead.
 name: Publish
 
 on:

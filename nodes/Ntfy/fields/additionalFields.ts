@@ -7,11 +7,6 @@ export const additionalFields: INodeProperties[] = [
 		type: 'collection',
 		default: {},
 		placeholder: 'Add Option',
-		displayOptions: {
-			show: {
-				constructNotification: ['generalFields'],
-			},
-		},
 		options: [
 			{
 				displayName: 'Action Buttons',
@@ -112,7 +107,7 @@ export const additionalFields: INodeProperties[] = [
 								displayName: 'Body',
 								name: 'bodyJson',
 								type: 'json',
-								default: '',
+								default: '{}',
 								displayOptions: {
 									show: {
 										action: ['http'],
@@ -137,7 +132,7 @@ export const additionalFields: INodeProperties[] = [
 								displayName: 'Headers',
 								name: 'headersJson',
 								type: 'json',
-								default: '',
+								default: '{}',
 								displayOptions: {
 									show: {
 										action: ['http'],
@@ -150,8 +145,18 @@ export const additionalFields: INodeProperties[] = [
 				],
 			},
 			{
-				displayName: 'Attachment',
-				name: 'attach',
+				displayName: 'Attachment by File',
+				name: 'fileAttach',
+				type: 'string',
+				default: '',
+				placeholder: 'data',
+				description:
+					'File to use as attachment on notification. Data must be a n8n binary item. For more information regarding file attachments, check ntfy <a href="https://docs.ntfy.sh/publish/#attach-local-file" target="_blank">docs</a>.',
+				hint: 'The name of the input binary field containing the file to be extracted',
+			},
+			{
+				displayName: 'Attachment by URL',
+				name: 'urlAttach',
 				// eslint-disable-next-line n8n-nodes-base/node-param-description-miscased-json
 				description:
 					'Add an attachment to the notification. <strong>NOTE</strong>: This is only for live URLs to attachments. To use n8n binary data for attachments, change the "Construct Notification" field to "JSON and Binary Fields". For more information, check out the <a href="https://github.com/JYLN/n8n-nodes-ntfy/wiki/Usage#json-and-binary-fields">docs</a>.',

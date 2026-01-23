@@ -2,48 +2,87 @@ import { INodeProperties } from 'n8n-workflow';
 
 export const mainFields: INodeProperties[] = [
 	{
-		displayName: 'Use Custom Server',
-		name: 'useCustomServer',
-		description:
-			'Whether to use a custom server. If not, the default server (ntfy.sh) will be used.',
-		type: 'boolean',
-		default: false,
-	},
-	{
-		displayName: 'Server URL',
-		name: 'serverUrl',
-		description: 'The URL of the ntfy.sh server',
-		type: 'string',
-		default: '',
-		placeholder: 'https://ntfy.sh',
-		displayOptions: {
-			show: {
-				useCustomServer: [true],
-			},
-		},
-	},
-	{
 		displayName: 'Topic',
 		name: 'topic',
 		type: 'string',
 		default: '',
-		placeholder: 'mytopic',
+		placeholder: 'my-topic',
 		required: true,
 	},
 	{
-		displayName: 'Construct Notification',
-		name: 'constructNotification',
+		displayName: 'Title',
+		name: 'title',
+		type: 'string',
+		default: '',
+	},
+	{
+		displayName: 'Priority',
+		name: 'priority',
 		type: 'options',
-		default: 'generalFields',
 		options: [
 			{
-				name: 'Using the Fields Below',
-				value: 'generalFields',
+				name: 'Max',
+				value: 5,
 			},
 			{
-				name: 'JSON and Binary',
-				value: 'jsonAndBinaryFields',
+				name: 'High',
+				value: 4,
+			},
+			{
+				name: 'Default',
+				value: 3,
+			},
+			{
+				name: 'Low',
+				value: 2,
+			},
+			{
+				name: 'Min',
+				value: 1,
 			},
 		],
+		default: 3,
+		noDataExpression: true,
+	},
+	{
+		displayName: 'Emojis/Tags',
+		name: 'tags',
+		type: 'collection',
+		placeholder: 'Add Emoji/Tag',
+		options: [
+			{
+				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-multi-options
+				displayName: 'Emojis',
+				name: 'emojis',
+				type: 'multiOptions',
+				// eslint-disable-next-line n8n-nodes-base/node-param-description-wrong-for-dynamic-multi-options
+				description:
+					'Choose from the list of emojis below. View the full list of available emojis on the <a href="https://docs.ntfy.sh/emojis">ntfy docs</a>.',
+				typeOptions: {
+					loadOptionsMethod: 'getEmojis',
+				},
+				default: [],
+				// requiresDataPath: 'multiple',
+			},
+			{
+				displayName: 'Custom Tags',
+				name: 'customTags',
+				description:
+					'If your tag is not a valid emoji, you can add your tag here. Separate tags by using commas. EX: tag1,tag2,tag3',
+				type: 'string',
+				default: '',
+				validateType: 'string',
+			},
+		],
+		default: {},
+	},
+	{
+		displayName: 'Message',
+		name: 'message',
+		type: 'string',
+		typeOptions: {
+			rows: 7,
+		},
+		default: '',
 	},
 ];
