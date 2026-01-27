@@ -10,7 +10,7 @@ import type { Readable } from 'stream';
 
 type NTFYRequestData = {
 	headers: { [key: string]: string };
-	body?: Buffer<ArrayBufferLike> | Readable;
+	body?: Buffer<ArrayBufferLike> | Readable | string;
 };
 
 type EmojisAndTags = {
@@ -38,6 +38,18 @@ type N8NAttachment = {
 		url: string;
 	};
 };
+
+type AdditionalOptions =
+	| {
+			actions?: object;
+			fileAttach?: string;
+			urlAttach?: string;
+			click?: string;
+			icon?: string;
+			markdown?: boolean;
+			delay?: string;
+	  }
+	| undefined;
 
 function getFieldsFromNode(this: IExecuteFunctions) {
 	const nodeParameters = this.getNode().parameters;
@@ -113,6 +125,20 @@ function setHeaderName(field: string) {
 	);
 }
 
+function isValidHttpHeader(str: string) {
+	for (const char of str) {
+		const charCode = char.codePointAt(0)!;
+
+		// Allow tabs
+		if (charCode === 0x09) continue;
+		// Allow printable ASCII
+		if (charCode >= 0x20 && charCode <= 0x7e) continue;
+
+		return false;
+	}
+	return true;
+}
+
 export async function constructRequestData(
 	this: IExecuteFunctions,
 	index: number,
@@ -129,6 +155,17 @@ export async function constructRequestData(
 		if (!value) continue;
 
 		switch (field) {
+			case 'message':
+				if (
+					isValidHttpHeader(value as string) &&
+					(getValueFromNodeParameter.call(this, index, 'additionalOptions') as AdditionalOptions)
+						?.fileAttach
+				) {
+					requestData.headers['X-Message'] = value as string;
+				} else {
+					requestData.body = value as string;
+				}
+				break;
 			case 'tags':
 				if ((value as EmojisAndTags).emojis || (value as EmojisAndTags).customTags) {
 					requestData.headers[fieldHeaderName] = getTagsFromNodeParameter.call(

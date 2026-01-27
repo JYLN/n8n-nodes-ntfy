@@ -84,5 +84,7 @@ export const mainFields: INodeProperties[] = [
 			rows: 7,
 		},
 		default: '',
+		description:
+			'Rich-text (line breaks, emojis, etc.) is supported as long as the "Attachment by File" field is not present in "Additional Options"',
 	},
 ];

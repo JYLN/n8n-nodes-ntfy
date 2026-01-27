@@ -26,7 +26,7 @@ export class Ntfy implements INodeType {
 			name: 'NTFY',
 		},
 		inputs: [NodeConnectionTypes.Main],
-		outputs: [],
+		outputs: [NodeConnectionTypes.Main],
 		properties: [...mainFields, ...additionalFields],
 		credentials: [
 			{
