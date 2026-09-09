@@ -139,6 +139,16 @@ function isValidHttpHeader(str: string) {
 	return true;
 }
 
+function encodeHeaders(val: unknown): string {
+	const string = String(val);
+
+	if (/^[\x00-\x7f]*$/.test(string)) {
+		return string;
+	}
+
+	return `=?UTF-8?B?${Buffer.from(string, 'utf-8').toString('base64')}?=`;
+}
+
 export async function constructRequestData(
 	this: IExecuteFunctions,
 	index: number,
@@ -228,10 +238,15 @@ export async function requestNTFYApi(
 		const serverUrl = credentials.serverUrl as string;
 		const { 'X-Topic': topic, ...restHeaders } = requestData.headers;
 
+		const requestHeaders: { [key: string]: string } = {};
+		for (const [header, value] of Object.entries(restHeaders)) {
+			requestHeaders[header] = encodeHeaders(value);
+		}
+
 		const options: IHttpRequestOptions = {
 			method: 'POST',
 			url: serverUrl + '/' + topic,
-			headers: restHeaders,
+			headers: requestHeaders,
 			body: requestData.body || undefined,
 		};
 
