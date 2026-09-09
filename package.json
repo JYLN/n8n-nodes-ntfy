@@ -1,6 +1,6 @@
 {
 	"name": "@jyln/n8n-nodes-ntfy",
-	"version": "2.0.0",
+	"version": "2.0.2",
 	"description": "A community n8n node for ntfy.sh",
 	"license": "MIT",
 	"homepage": "https://github.com/JYLN/n8n-nodes-ntfy.git",
@@ -45,10 +45,10 @@
 	"devDependencies": {
 		"@n8n/node-cli": "*",
 		"@types/node": "^25.0.10",
-		"eslint": "9.32.0",
-		"prettier": "3.6.2",
-		"release-it": "^19.0.4",
-		"typescript": "5.9.2"
+		"eslint": "9.39.4",
+		"prettier": "3.8.3",
+		"release-it": "20.2.0",
+		"typescript": "5.9.3"
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
