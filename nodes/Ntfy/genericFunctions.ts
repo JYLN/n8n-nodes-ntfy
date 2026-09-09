@@ -125,28 +125,66 @@ function setHeaderName(field: string) {
 	);
 }
 
-function isValidHttpHeader(str: string) {
-	for (const char of str) {
-		const charCode = char.codePointAt(0)!;
+function isValidHttpHeaderValue(val: unknown): val is string {
+	if (typeof val !== 'string') return false;
 
-		// Allow tabs
-		if (charCode === 0x09) continue;
-		// Allow printable ASCII
-		if (charCode >= 0x20 && charCode <= 0x7e) continue;
+	for (const char of val) {
+		const codePoint = char.codePointAt(0)!;
 
-		return false;
+		// Reject C0 control chars, including CR, LF, Tab...
+		if (codePoint < 0x20) return false;
+
+		// Reject DEL
+		if (codePoint === 0x7f) return false;
+
+		// Reject C1 control chars
+		if (codePoint >= 0x80 && codePoint <= 0x9f) return false;
 	}
+
 	return true;
 }
 
-function encodeHeaders(val: unknown): string {
-	const string = String(val);
-
-	if (/^[\x00-\x7f]*$/.test(string)) {
-		return string;
+function validateHeaderValue(this: IExecuteFunctions, val: unknown, headerName: string): string {
+	if (typeof val !== 'string' && typeof val !== 'number' && typeof val !== 'boolean') {
+		throw new NodeOperationError(
+			this.getNode(),
+			`Header "${headerName}" must be a string, number, or boolean`,
+		);
 	}
 
-	return `=?UTF-8?B?${Buffer.from(string, 'utf-8').toString('base64')}?=`;
+	const stringValue = String(val);
+
+	if (!isValidHttpHeaderValue(stringValue)) {
+		throw new NodeOperationError(
+			this.getNode(),
+			`Header "${headerName}" contains invalid control characters`,
+		);
+	}
+
+	return stringValue;
+}
+
+function encodeRfc2047(val: string): string {
+	return `=?UTF-8?B?${Buffer.from(val, 'utf-8').toString('base64')}?=`;
+}
+
+function encodeHeaderValue(this: IExecuteFunctions, val: unknown, headerName: string): string {
+	if (headerName.toLowerCase() === 'x-message') {
+		if (typeof val !== 'string') {
+			throw new NodeOperationError(this.getNode(), `Header ${headerName} must be a string`);
+		}
+
+		return encodeRfc2047(val);
+	}
+
+	const stringValue = validateHeaderValue.call(this, val, headerName);
+	for (const char of stringValue) {
+		if (char.codePointAt(0)! > 0x7f) {
+			return encodeRfc2047(stringValue);
+		}
+	}
+
+	return stringValue;
 }
 
 export async function constructRequestData(
@@ -162,31 +200,42 @@ export async function constructRequestData(
 		const fieldHeaderName = setHeaderName(field);
 		const value = getValueFromNodeParameter.call(this, index, field);
 
-		if (!value) continue;
+		if (value === null || value === undefined) continue;
 
 		switch (field) {
-			case 'message':
-				if (
-					isValidHttpHeader(value as string) &&
-					(getValueFromNodeParameter.call(this, index, 'additionalOptions') as AdditionalOptions)
-						?.fileAttach
-				) {
-					requestData.headers['X-Message'] = value as string;
+			case 'message': {
+				const additionalOptions = getValueFromNodeParameter.call(
+					this,
+					index,
+					'additionalOptions',
+				) as AdditionalOptions;
+
+				const message = String(value);
+
+				if (additionalOptions?.fileAttach) {
+					requestData.headers['X-Message'] = message;
 				} else {
-					requestData.body = value as string;
+					requestData.body = message;
 				}
 				break;
-			case 'tags':
-				if ((value as EmojisAndTags).emojis || (value as EmojisAndTags).customTags) {
-					requestData.headers[fieldHeaderName] = getTagsFromNodeParameter.call(
+			}
+			case 'tags': {
+				const tags = value as EmojisAndTags;
+
+				if (tags.emojis || tags.customTags) {
+					const tagValue = getTagsFromNodeParameter.call(this, tags);
+
+					requestData.headers[fieldHeaderName] = validateHeaderValue.call(
 						this,
-						value as EmojisAndTags,
+						tagValue,
+						fieldHeaderName,
 					);
 				}
 				break;
+			}
 			case 'additionalOptions': {
 				const additionalFields = value;
-				const returnHeaders = {} as NTFYRequestData['headers'];
+				const returnHeaders: NTFYRequestData['headers'] = {};
 				for (const [additionalField, additionalValue] of Object.entries(additionalFields)) {
 					if (additionalField === 'actions') {
 						returnHeaders['X-Actions'] = getActionButtonsFromNodeParameter(
@@ -214,14 +263,20 @@ export async function constructRequestData(
 						}
 						continue;
 					}
-					returnHeaders[setHeaderName(additionalField)] = additionalValue;
+
+					const headerName = setHeaderName(additionalField);
+					returnHeaders[headerName] = validateHeaderValue.call(this, additionalValue, headerName);
 				}
 
 				Object.assign(requestData.headers, returnHeaders);
 				break;
 			}
 			default:
-				requestData.headers[fieldHeaderName] = value as string;
+				requestData.headers[fieldHeaderName] = validateHeaderValue.call(
+					this,
+					value,
+					fieldHeaderName,
+				);
 		}
 	}
 
@@ -240,7 +295,7 @@ export async function requestNTFYApi(
 
 		const requestHeaders: { [key: string]: string } = {};
 		for (const [header, value] of Object.entries(restHeaders)) {
-			requestHeaders[header] = encodeHeaders(value);
+			requestHeaders[header] = encodeHeaderValue.call(this, value, header);
 		}
 
 		const options: IHttpRequestOptions = {
